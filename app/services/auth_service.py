@@ -3,6 +3,7 @@ from app.utils.password import (
     hash_password,
     verify_password
 )
+from app.utils.jwt import create_access_token
 
 class AuthService:
 
@@ -37,27 +38,29 @@ class AuthService:
     @staticmethod
     def login(data):
 
-        user = UserModel.find_by_email(
-            data.email
-        )
+        user = UserModel.find_by_email(data.email)
 
         if not user:
-            raise Exception(
-                "Invalid credentials"
-            )
+            raise Exception("Invalid credentials")
 
         if not verify_password(
             data.password,
             user["password"]
         ):
-            raise Exception(
-                "Invalid credentials"
-            )
+            raise Exception("Invalid credentials")
+
+        token = create_access_token({
+            "user_id": str(user["_id"]),
+            "email": user["email"]
+        })
 
         return {
             "message": "Login successful",
+            "token": token,
             "user": {
+                "id": str(user["_id"]),
                 "name": user["name"],
-                "email": user["email"]
+                "email": user["email"],
+                "phone": user["phone"]
             }
         }
